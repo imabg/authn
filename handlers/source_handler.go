@@ -25,6 +25,7 @@ func (s *SourceHandler) Create(c *gin.Context) {
 			"message": "Bad request",
 			"error":   err.Error(),
 		})
+		return
 	}
 	var source types.Source
 	source.Name = body.Name
@@ -35,6 +36,7 @@ func (s *SourceHandler) Create(c *gin.Context) {
 			"message": "Internal server error",
 			"error":   err.Error(),
 		})
+		return
 	}
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Source created successfully",
@@ -50,6 +52,7 @@ func (s *SourceHandler) GetByID(c *gin.Context) {
 			"message": "Bad request",
 			"error":   err.Error(),
 		})
+		return
 	}
 	source, err := s.store.GetByID(i)
 
@@ -58,6 +61,7 @@ func (s *SourceHandler) GetByID(c *gin.Context) {
 			"message": "Bad request",
 			"error":   err.Error(),
 		})
+		return
 	}
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Source fetched successfully",
