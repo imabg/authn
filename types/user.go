@@ -16,7 +16,8 @@ type User struct {
 }
 
 type UserDTO struct {
-	Email       string `json:"email" binding:"required, email"`
-	Phone       int    `json:"phone" binding:"max=10"`
-	CountryCode string `json:"country_code" binding:"iso3166_1_alpha2"`
+	Email       string `json:"email" binding:"required"`
+	Phone       int    `json:"phone,omitempty"`
+	CountryCode string `json:"country_code,omitempty"`
+	SourceID    int64  `json:"source_id" binding:"required"`
 }
