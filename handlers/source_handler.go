@@ -4,8 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/imabg/authn/store"
 	"github.com/imabg/authn/types"
-	"net/http"
-	"strconv"
+	"github.com/imabg/authn/utils"
 )
 
 type SourceHandler struct {
@@ -21,50 +20,27 @@ func NewSourceHandler(sStore store.SourceStoreInterface) *SourceHandler {
 func (s *SourceHandler) Create(c *gin.Context) {
 	body := types.SourceRTO{}
 	if err := c.ShouldBindJSON(&body); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"message": "Bad request",
-			"error":   err.Error(),
-		})
+		utils.Send400Response(c, "Bad request", err.Error())
 		return
 	}
 	var source types.Source
 	source.Name = body.Name
 	source.Description = body.Description
+	source.ID = utils.GenerateUUID()
 	id, err := s.store.Create(&source)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": "Internal server error",
-			"error":   err.Error(),
-		})
+		utils.Send500Response(c, "Internal server error", err.Error())
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "Source created successfully",
-		"id":      id,
-	})
+	utils.Send201Response(c, "Source created successfully", id)
 }
 
 func (s *SourceHandler) GetByID(c *gin.Context) {
 	id := c.Param("id")
-	i, err := strconv.Atoi(id)
+	source, err := s.store.GetByID(id)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"message": "Bad request",
-			"error":   err.Error(),
-		})
+		utils.Send500Response(c, "Internal server error", err.Error())
 		return
 	}
-	source, err := s.store.GetByID(i)
-
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"message": "Bad request",
-			"error":   err.Error(),
-		})
-		return
-	}
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "Source fetched successfully",
-		"data":    &source,
-	})
+	utils.Send200Response(c, "Source fetched successfully", &source)
 }

@@ -34,12 +34,12 @@ func main() {
 	sourceHandler := handlers.NewSourceHandler(sourceStore)
 	//user store
 	userStore := store.NewUserStore(conn)
-	userHandler := handlers.NewUserHandler(userStore)
+	userHandler := handlers.NewUserHandler(userStore, sourceStore)
 	var base = "/api/v1"
-	router.POST(fmt.Sprintf("%s/sources", base), sourceHandler.Create)
+	router.POST(fmt.Sprintf("%s/sources/create", base), sourceHandler.Create)
 	router.GET(fmt.Sprintf("%s/sources/:id", base), sourceHandler.GetByID)
 
-	router.POST(fmt.Sprintf("%s/users", base), userHandler.Create)
+	router.POST(fmt.Sprintf("%s/users/email", base), userHandler.CreateViaEmail)
 	err = router.Run(":8080")
 	if err != nil {
 		return

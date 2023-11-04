@@ -1,23 +1,25 @@
 package types
 
-import "github.com/google/uuid"
-
 type User struct {
-	ID              uuid.UUID `json:"id"`
-	Email           string    `json:"email"`
-	DisplayID       string    `json:"display_id"`
-	Phone           int       `json:"phone"`
-	IsEmailVerified bool      `json:"is_email_verified"`
-	IsPhoneVerified bool      `json:"is_phone_verified"`
-	CountryCode     string    `json:"country_code"`
-	IsBlacklisted   bool      `json:"is_blacklisted"`
-	SourceID        int64     `json:"source_id"`
-	CreatedAt       string    `json:"created_at"`
+	ID              string `db:"id" json:"id"`
+	Email           string `db:"email" json:"email"`
+	Phone           string `db:"phone" json:"phone"`
+	IsEmailVerified bool   `db:"is_email_verified" json:"is_email_verified"`
+	IsPhoneVerified bool   `db:"is_phone_verified" json:"is_phone_verified"`
+	CountryCode     string `db:"country_code" json:"country_code"`
+	IsBlacklisted   bool   `db:"is_blacklisted" json:"is_blacklisted"`
+	SourceID        string `db:"source_id" json:"source_id"`
+	CreatedAt       string `db:"created_at" json:"created_at"`
 }
 
-type UserDTO struct {
-	Email       string `json:"email" binding:"required"`
-	Phone       int    `json:"phone,omitempty"`
-	CountryCode string `json:"country_code,omitempty"`
-	SourceID    int64  `json:"source_id" binding:"required"`
+type UserEmailDTO struct {
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
+	SourceID string `json:"source_id" binding:"required"`
+}
+
+type UserPhoneDTO struct {
+	Phone       string `json:"phone" binding:"required"`
+	CountryCode string `json:"country_code" binding:"required"`
+	SourceID    string `json:"source_id" binding:"required"`
 }

@@ -21,8 +21,8 @@ func NewUserStore(db *sqlx.DB) *UserStore {
 
 func (u *UserStore) Create(data *types.User) (string, error) {
 	var id string
-	query := `INSERT INTO users (id,email, phone, country_code, source_id, display_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING display_id`
-	err := u.db.QueryRow(query, data.ID, data.Email, data.Phone, data.CountryCode, data.SourceID, data.DisplayID).Scan(&id)
+	query := `INSERT INTO users (id,email, country_code, source_id) VALUES ($1, $2, $3, $4) RETURNING id`
+	err := u.db.QueryRow(query, data.ID, data.Email, data.CountryCode, data.SourceID).Scan(&id)
 	if err != nil {
 		return id, err
 	}

@@ -5,46 +5,70 @@ import (
 	"github.com/imabg/authn/store"
 	"github.com/imabg/authn/types"
 	"github.com/imabg/authn/utils"
-	"net/http"
+	"strings"
+	"unicode"
 )
 
 type UserHandler struct {
-	store store.UserStoreInterface
+	store       store.UserStoreInterface
+	sourceStore store.SourceStoreInterface
 }
 
-func NewUserHandler(uStore store.UserStoreInterface) *UserHandler {
+func NewUserHandler(uStore store.UserStoreInterface, sStore store.SourceStoreInterface) *UserHandler {
 	return &UserHandler{
-		store: uStore,
+		store:       uStore,
+		sourceStore: sStore,
 	}
 }
 
-func (u *UserHandler) Create(c *gin.Context) {
-	body := types.UserDTO{}
+func (u *UserHandler) CreateViaEmail(c *gin.Context) {
+	body := types.UserEmailDTO{}
 	if err := c.ShouldBindJSON(&body); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"message": "Bad request",
-			"error":   err.Error(),
-		})
+		utils.Send400Response(c, "Bad request", err.Error())
+		return
+	}
+	sourceConfig, err := u.sourceStore.GetConfig(body.SourceID)
+	if err != nil {
+		utils.Send400Response(c, "Invalid source", err.Error())
+		return
+	}
+	isPwdValid := checkPassword(body.Password, sourceConfig)
+	if !isPwdValid {
+		utils.Send400Response(c, "Bad request", "Password does not match source policy")
 		return
 	}
 	var user types.User
 	user.ID = utils.GenerateUUID()
 	user.Email = body.Email
-	user.Phone = body.Phone
 	user.SourceID = body.SourceID
-	user.CountryCode = body.CountryCode
-	dId, err := utils.GenerateDisplayID()
-	user.DisplayID = dId
+	//TODO: encrypt the password and create a new entry in "credentials" and link with user_id
 	id, err := u.store.Create(&user)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message": "Internal server error",
-			"error":   err.Error(),
-		})
+		utils.Send500Response(c, "Internal server error", err.Error())
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "User created successfully",
-		"id":      id,
-	})
+	utils.Send201Response(c, "User created successfully", id)
+}
+
+func checkPassword(password string, config *types.Config) bool {
+	if len(password) < config.PasswordLength {
+		return false
+	}
+
+	var hasLower, hasUpper, hasDigit, hasSpecial bool
+
+	for _, char := range password {
+		switch {
+		case unicode.IsLower(char) && config.PasswordLowerAllowed:
+			hasLower = true
+		case unicode.IsUpper(char) && config.PasswordUpperAllowed:
+			hasUpper = true
+		case unicode.IsDigit(char) && config.PasswordNumericAllowed:
+			hasDigit = true
+		case strings.ContainsRune("!@#\\$%\\^&\\*", char) && config.PasswordSpecialAllowed:
+			hasSpecial = true
+		}
+	}
+
+	return hasLower && hasUpper && hasDigit && hasSpecial
 }

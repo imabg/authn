@@ -1,18 +1,63 @@
 package utils
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/teris-io/shortid"
+	"github.com/segmentio/ksuid"
+	"net/http"
 )
 
-func GenerateUUID() uuid.UUID {
-	return uuid.New()
+type Response struct {
+	Message string      `json:"message"`
+	Status  string      `json:"status"`
+	Error   string      `json:"error"`
+	Data    interface{} `json:"data"`
 }
 
-func GenerateDisplayID() (string, error) {
-	id, err := shortid.Generate()
-	if err != nil {
-		return "", err
+func GenerateUUID() string {
+	return uuid.New().String()
+}
+
+func GenerateID() string {
+	return ksuid.New().String()
+}
+
+func Send200Response(ctx *gin.Context, message string, data interface{}) {
+	res := Response{
+		Message: message,
+		Status:  "Success",
+		Error:   "",
+		Data:    data,
 	}
-	return id, nil
+	ctx.JSON(http.StatusOK, res)
+}
+
+func Send201Response(ctx *gin.Context, message string, data interface{}) {
+	res := Response{
+		Message: message,
+		Status:  "Success",
+		Error:   "",
+		Data:    data,
+	}
+	ctx.JSON(http.StatusCreated, res)
+}
+
+func Send400Response(ctx *gin.Context, message string, err string) {
+	res := Response{
+		Message: message,
+		Status:  "Error",
+		Error:   err,
+		Data:    nil,
+	}
+	ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+}
+
+func Send500Response(ctx *gin.Context, message string, err string) {
+	res := Response{
+		Message: message,
+		Status:  "Error",
+		Error:   err,
+		Data:    nil,
+	}
+	ctx.AbortWithStatusJSON(http.StatusInternalServerError, res)
 }
