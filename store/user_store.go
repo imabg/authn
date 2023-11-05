@@ -2,11 +2,13 @@ package store
 
 import (
 	"github.com/imabg/authn/types"
+	"github.com/imabg/authn/utils"
 	"github.com/jmoiron/sqlx"
 )
 
 type UserStoreInterface interface {
-	Create(user *types.User) (string, error)
+	CreateViaEmail(user *types.User, password string) (string, error)
+	CreateViaPhone(user *types.User) (string, error)
 }
 
 type UserStore struct {
@@ -19,12 +21,36 @@ func NewUserStore(db *sqlx.DB) *UserStore {
 	}
 }
 
-func (u *UserStore) Create(data *types.User) (string, error) {
+func (u *UserStore) CreateViaEmail(data *types.User, password string) (string, error) {
 	var id string
-	query := `INSERT INTO users (id,email, country_code, source_id) VALUES ($1, $2, $3, $4) RETURNING id`
-	err := u.db.QueryRow(query, data.ID, data.Email, data.CountryCode, data.SourceID).Scan(&id)
+	tx, err := u.db.Begin()
 	if err != nil {
-		return id, err
+		return "", err
+	}
+	err = tx.QueryRow(`INSERT INTO users (id, email, source_id) VALUES ($1, $2, $3) RETURNING id`, utils.GenerateUUID(), data.Email, data.SourceID).Scan(&id)
+	if err != nil {
+		err = tx.Rollback()
+		return "", err
+	}
+	_, err = tx.Query(`INSERT INTO credentials (id, password, user_id) VALUES ($1, $2, $3)`, utils.GenerateUUID(), password, id)
+	if err != nil {
+		err = tx.Rollback()
+		return "", err
+	}
+	err = tx.Commit()
+	if err != nil {
+		return "", err
+	}
+
+	return id, nil
+}
+
+func (u *UserStore) CreateViaPhone(data *types.User) (string, error) {
+	var id string
+	query := `INSERT INTO users (id, phone, country_code, source_id) VALUES ($1, $2, $3, $4) RETURNING id`
+	err := u.db.QueryRow(query, utils.GenerateUUID(), data.Phone, data.CountryCode, data.SourceID).Scan(&id)
+	if err != nil {
+		return "", err
 	}
 	return id, nil
 }

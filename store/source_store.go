@@ -27,6 +27,7 @@ func NewSourceStore(db *sqlx.DB) *SourceStore {
 
 func (s *SourceStore) Create(data *types.Source) (string, error) {
 	var id string
+	data.ID = utils.GenerateUUID()
 	query := `INSERT INTO sources (id, name, description) VALUES ($1, $2, $3) RETURNING id`
 	configQuery := `INSERT INTO "sourceConfigs" (id, source_id) VALUES ($1, $2)`
 	err := s.db.QueryRow(query, data.ID, data.Name, data.Description).Scan(&id)

@@ -3,7 +3,6 @@ package utils
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/segmentio/ksuid"
 	"net/http"
 )
 
@@ -16,10 +15,6 @@ type Response struct {
 
 func GenerateUUID() string {
 	return uuid.New().String()
-}
-
-func GenerateID() string {
-	return ksuid.New().String()
 }
 
 func Send200Response(ctx *gin.Context, message string, data interface{}) {

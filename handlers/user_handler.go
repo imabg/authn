@@ -38,11 +38,34 @@ func (u *UserHandler) CreateViaEmail(c *gin.Context) {
 		return
 	}
 	var user types.User
-	user.ID = utils.GenerateUUID()
 	user.Email = body.Email
 	user.SourceID = body.SourceID
-	//TODO: encrypt the password and create a new entry in "credentials" and link with user_id
-	id, err := u.store.Create(&user)
+	pwdType := utils.NewArgon2ID()
+	pwd, err := pwdType.Hash(body.Password)
+	if err != nil {
+		//TODO: send proper error when password does not match source config
+		utils.Send500Response(c, "Internal server error", err.Error())
+		return
+	}
+	id, err := u.store.CreateViaEmail(&user, pwd)
+	if err != nil {
+		utils.Send500Response(c, "Internal server error", err.Error())
+		return
+	}
+	utils.Send201Response(c, "User created successfully", id)
+}
+
+func (u *UserHandler) CreateViaPhone(c *gin.Context) {
+	body := types.UserPhoneDTO{}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		utils.Send400Response(c, "Bad request", err.Error())
+		return
+	}
+	var user types.User
+	user.Phone = body.Phone
+	user.CountryCode = body.CountryCode
+	user.SourceID = body.SourceID
+	id, err := u.store.CreateViaPhone(&user)
 	if err != nil {
 		utils.Send500Response(c, "Internal server error", err.Error())
 		return

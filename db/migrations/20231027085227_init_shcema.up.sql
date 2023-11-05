@@ -9,7 +9,7 @@ CREATE TABLE "sources" (
 
 CREATE TABLE "users" (
   "id" varchar(50) PRIMARY KEY,
-  "email" varchar(50) NOT NULL,
+  "email" varchar(255),
   "phone" varchar(10),
   "is_email_verified" boolean DEFAULT false,
   "is_phone_verified" boolean DEFAULT false,

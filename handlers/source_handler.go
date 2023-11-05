@@ -26,7 +26,6 @@ func (s *SourceHandler) Create(c *gin.Context) {
 	var source types.Source
 	source.Name = body.Name
 	source.Description = body.Description
-	source.ID = utils.GenerateUUID()
 	id, err := s.store.Create(&source)
 	if err != nil {
 		utils.Send500Response(c, "Internal server error", err.Error())

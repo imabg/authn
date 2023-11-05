@@ -40,6 +40,7 @@ func main() {
 	router.GET(fmt.Sprintf("%s/sources/:id", base), sourceHandler.GetByID)
 
 	router.POST(fmt.Sprintf("%s/users/email", base), userHandler.CreateViaEmail)
+	router.POST(fmt.Sprintf("%s/users/phone", base), userHandler.CreateViaPhone)
 	err = router.Run(":8080")
 	if err != nil {
 		return
