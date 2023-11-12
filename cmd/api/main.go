@@ -1,65 +1,91 @@
 package main
 
 import (
-	"log"
-	"os"
-
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/imabg/authn/handlers"
 	"github.com/imabg/authn/store"
-
-	"github.com/joho/godotenv"
+	"github.com/imabg/authn/utils"
+	"github.com/jmoiron/sqlx"
+	"log"
 )
 
-func init() {
-	err := godotenv.Load()
+type ServerType struct {
+	Config      utils.Config
+	TokenMaster utils.Maker
+	Router      *gin.Engine
+	SourceStore *store.SourceStore
+	UserStore   *store.UserStore
+	LoginStore  *store.LoginStore
+}
+
+func main() {
+	server, err := initServer()
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-func main() {
-	conn, err := store.NewPostgresStore(os.Getenv("POSTGRES_DB_URL"))
+	conn, err := store.NewPostgresStore(server.Config.PostgresDBURL)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	router := gin.Default()
-	router.GET("/ping", func(context *gin.Context) {
+	server.Router.GET("/ping", func(context *gin.Context) {
 		context.JSON(200, gin.H{
 			"message": "Authn is up and running",
 		})
 	})
-	// source store
-	sourceStore := store.NewSourceStore(conn)
-	sourceHandler := handlers.NewSourceHandler(sourceStore)
-	//user store
-	userStore := store.NewUserStore(conn)
-	userHandler := handlers.NewUserHandler(userStore, sourceStore)
-	//login store
-	credStore := store.NewCredentialStore(conn)
-	loginStore := store.NewLoginStore(conn)
-	loginHandler := handlers.NewLoginHandler(loginStore, credStore)
 
-	base := router.Group("/api/v1")
-	//source routes
-	sourceRoutes := base.Group("/sources")
-	sourceRoutes.POST("/create", sourceHandler.Create)
-	sourceRoutes.GET("/:id", sourceHandler.GetByID)
+	server.initialiseStore(conn)
+	server.setupRoutes()
 
-	//users routes
-	userRoutes := base.Group("/users")
-	userRoutes.POST("/email", userHandler.CreateViaEmail)
-	userRoutes.POST("/phone", userHandler.CreateViaPhone)
-
-	//auth routes
-	loginRoutes := base.Group("/auth")
-	loginRoutes.POST("/login/email", loginHandler.LoginViaEmail)
-
-	//private routes
-	//privateRoutes := base.Group("/").Use(middlewares.AuthMiddleware())
-
-	err = router.Run(":8080")
+	err = server.Router.Run(":8080")
 	if err != nil {
 		return
 	}
+}
+
+func initServer() (*ServerType, error) {
+	config, err := utils.LoadConfig()
+	if err != nil {
+		return nil, fmt.Errorf("while loading config %s", err.Error())
+	}
+	tokenMaster, err := utils.NewPasetoMaker(config.TokenSecretKey)
+	if err != nil {
+		return nil, fmt.Errorf("while creating token %s", err.Error())
+	}
+	s := gin.Default()
+	return &ServerType{
+		Config:      config,
+		TokenMaster: tokenMaster,
+		Router:      s,
+	}, nil
+}
+
+func (s *ServerType) initialiseStore(conn *sqlx.DB) {
+	s.LoginStore = store.NewLoginStore(conn)
+	s.UserStore = store.NewUserStore(conn)
+	s.SourceStore = store.NewSourceStore(conn)
+}
+
+func (s *ServerType) setupRoutes() {
+	const base = "/api/v1"
+	baseRoutes := s.Router.Group(base)
+
+	//	source routes
+	sourceRoutes := baseRoutes.Group("/sources")
+	sourceHandler := handlers.NewSourceHandler(s.SourceStore)
+	sourceRoutes.POST("/create", sourceHandler.Create)
+	sourceRoutes.GET("/:id", sourceHandler.GetByID)
+
+	//	user routes
+	userRoutes := baseRoutes.Group("/users")
+	userHandler := handlers.NewUserHandler(s.UserStore, s.SourceStore)
+	userRoutes.POST("/email", userHandler.CreateViaEmail)
+	userRoutes.POST("/phone", userHandler.CreateViaPhone)
+
+	//	auth  routes
+	authRoutes := baseRoutes.Group("/auth")
+	authHandler := handlers.NewLoginHandler(s.LoginStore, s.TokenMaster, s.Config)
+	authRoutes.POST("/login/email", authHandler.LoginViaEmail)
+
 }

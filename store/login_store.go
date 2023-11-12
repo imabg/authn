@@ -8,6 +8,7 @@ import (
 
 type ILoginStore interface {
 	CheckAccess(value string) (*types.User, error)
+	GetUserCred(userId string) (string, error)
 	Log(login *types.LoginLog) error
 }
 
@@ -41,6 +42,15 @@ func (l *LoginStore) CheckAccess(value string) (*types.User, error) {
 		return nil, errors.New("user is blacklisted")
 	}
 	return &user, err
+}
+
+func (l *LoginStore) GetUserCred(userId string) (string, error) {
+	var hashPwd string
+	err := l.db.Get(&hashPwd, `SELECT password FROM credentials WHERE user_id=$1`, userId)
+	if err != nil {
+		return "", err
+	}
+	return hashPwd, nil
 }
 
 func (l *LoginStore) Log(data *types.LoginLog) error {

@@ -54,7 +54,7 @@ type PasetoMaker struct {
 }
 
 type Maker interface {
-	CreateToken(userId string, sourceId string) (string, *Payload, error)
+	CreateToken(ttl time.Duration, userId string, sourceId string) (string, *Payload, error)
 	VerifyToken(token string) (*Payload, error)
 }
 
@@ -68,8 +68,8 @@ func NewPasetoMaker(symmetricKey string) (Maker, error) {
 	}
 	return maker, nil
 }
-func (maker *PasetoMaker) CreateToken(userId string, sourceId string) (string, *Payload, error) {
-	payload, err := NewPayload(userId, sourceId, 6*time.Hour)
+func (maker *PasetoMaker) CreateToken(ttl time.Duration, userId string, sourceId string) (string, *Payload, error) {
+	payload, err := NewPayload(userId, sourceId, ttl)
 	if err != nil {
 		return "", payload, err
 	}
