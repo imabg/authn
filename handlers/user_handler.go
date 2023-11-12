@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"github.com/gin-gonic/gin"
 	"github.com/imabg/authn/store"
 	"github.com/imabg/authn/types"
@@ -10,11 +11,11 @@ import (
 )
 
 type UserHandler struct {
-	store       store.UserStoreInterface
-	sourceStore store.SourceStoreInterface
+	store       store.IUserStore
+	sourceStore store.ISourceStore
 }
 
-func NewUserHandler(uStore store.UserStoreInterface, sStore store.SourceStoreInterface) *UserHandler {
+func NewUserHandler(uStore store.IUserStore, sStore store.ISourceStore) *UserHandler {
 	return &UserHandler{
 		store:       uStore,
 		sourceStore: sStore,
@@ -62,8 +63,14 @@ func (u *UserHandler) CreateViaPhone(c *gin.Context) {
 		return
 	}
 	var user types.User
-	user.Phone = body.Phone
-	user.CountryCode = body.CountryCode
+	user.Phone = sql.NullString{
+		String: body.Phone,
+		Valid:  true,
+	}
+	user.CountryCode = sql.NullString{
+		String: body.CountryCode,
+		Valid:  true,
+	}
 	user.SourceID = body.SourceID
 	id, err := u.store.CreateViaPhone(&user)
 	if err != nil {

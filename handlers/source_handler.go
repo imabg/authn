@@ -8,10 +8,10 @@ import (
 )
 
 type SourceHandler struct {
-	store store.SourceStoreInterface
+	store store.ISourceStore
 }
 
-func NewSourceHandler(sStore store.SourceStoreInterface) *SourceHandler {
+func NewSourceHandler(sStore store.ISourceStore) *SourceHandler {
 	return &SourceHandler{
 		store: sStore,
 	}

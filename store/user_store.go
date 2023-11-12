@@ -6,7 +6,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type UserStoreInterface interface {
+type IUserStore interface {
 	CreateViaEmail(user *types.User, password string) (string, error)
 	CreateViaPhone(user *types.User) (string, error)
 }

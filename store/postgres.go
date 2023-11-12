@@ -1,14 +1,12 @@
 package store
 
 import (
-	"os"
-
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
 
-func NewPostgresStore() (*sqlx.DB, error) {
-	conn, err := sqlx.Connect("postgres", os.Getenv("DB_URI"))
+func NewPostgresStore(url string) (*sqlx.DB, error) {
+	conn, err := sqlx.Connect("postgres", url)
 	if err != nil {
 		return nil, err
 	}

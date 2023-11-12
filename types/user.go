@@ -1,15 +1,17 @@
 package types
 
+import "database/sql"
+
 type User struct {
-	ID              string `db:"id" json:"id"`
-	Email           string `db:"email" json:"email"`
-	Phone           string `db:"phone" json:"phone"`
-	IsEmailVerified bool   `db:"is_email_verified" json:"is_email_verified"`
-	IsPhoneVerified bool   `db:"is_phone_verified" json:"is_phone_verified"`
-	CountryCode     string `db:"country_code" json:"country_code"`
-	IsBlacklisted   bool   `db:"is_blacklisted" json:"is_blacklisted"`
-	SourceID        string `db:"source_id" json:"source_id"`
-	CreatedAt       string `db:"created_at" json:"created_at"`
+	ID              string         `db:"id" json:"id"`
+	Email           string         `db:"email" json:"email"`
+	Phone           sql.NullString `db:"phone" json:"phone"`
+	IsEmailVerified bool           `db:"is_email_verified" json:"is_email_verified"`
+	IsPhoneVerified bool           `db:"is_phone_verified" json:"is_phone_verified"`
+	CountryCode     sql.NullString `db:"country_code" json:"country_code"`
+	IsBlacklisted   bool           `db:"is_blacklisted" json:"is_blacklisted"`
+	SourceID        string         `db:"source_id" json:"source_id"`
+	CreatedAt       string         `db:"created_at" json:"created_at"`
 }
 
 type UserEmailDTO struct {

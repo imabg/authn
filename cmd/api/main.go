@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"log"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/imabg/authn/handlers"
@@ -18,7 +18,7 @@ func init() {
 	}
 }
 func main() {
-	conn, err := store.NewPostgresStore()
+	conn, err := store.NewPostgresStore(os.Getenv("POSTGRES_DB_URL"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -35,12 +35,29 @@ func main() {
 	//user store
 	userStore := store.NewUserStore(conn)
 	userHandler := handlers.NewUserHandler(userStore, sourceStore)
-	var base = "/api/v1"
-	router.POST(fmt.Sprintf("%s/sources/create", base), sourceHandler.Create)
-	router.GET(fmt.Sprintf("%s/sources/:id", base), sourceHandler.GetByID)
+	//login store
+	credStore := store.NewCredentialStore(conn)
+	loginStore := store.NewLoginStore(conn)
+	loginHandler := handlers.NewLoginHandler(loginStore, credStore)
 
-	router.POST(fmt.Sprintf("%s/users/email", base), userHandler.CreateViaEmail)
-	router.POST(fmt.Sprintf("%s/users/phone", base), userHandler.CreateViaPhone)
+	base := router.Group("/api/v1")
+	//source routes
+	sourceRoutes := base.Group("/sources")
+	sourceRoutes.POST("/create", sourceHandler.Create)
+	sourceRoutes.GET("/:id", sourceHandler.GetByID)
+
+	//users routes
+	userRoutes := base.Group("/users")
+	userRoutes.POST("/email", userHandler.CreateViaEmail)
+	userRoutes.POST("/phone", userHandler.CreateViaPhone)
+
+	//auth routes
+	loginRoutes := base.Group("/auth")
+	loginRoutes.POST("/login/email", loginHandler.LoginViaEmail)
+
+	//private routes
+	//privateRoutes := base.Group("/").Use(middlewares.AuthMiddleware())
+
 	err = router.Run(":8080")
 	if err != nil {
 		return

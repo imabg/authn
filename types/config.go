@@ -8,6 +8,7 @@ type Config struct {
 	PasswordNumericAllowed bool   `db:"password_numeric_allowed" json:"password_numeric_allowed"`
 	PasswordSpecialAllowed bool   `db:"password_special_allowed" json:"password_special_allowed"`
 	IsSystemGenerated      bool   `db:"is_system_generated" json:"is_system_generated"`
+	MaxConcurrentLogin     int    `db:"max_concurrent_login" json:"max_concurrent_login"`
 	IsActive               bool   `db:"is_active" json:"-"`
 	SourceId               string `db:"source_id" json:"source_id"`
 	CreatedAt              string `db:"created_at" json:"created_at"`

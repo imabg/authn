@@ -15,6 +15,7 @@ CREATE TABLE "sourceConfigs" (
     "password_special_allowed" boolean DEFAULT true,
     "is_system_generated" boolean DEFAULT true,
     "is_active" boolean DEFAULT true,
+    "max_concurrent_login" int DEFAULT 1,
     "source_id" varchar(50) NOT NULL,
     FOREIGN KEY ("source_id") REFERENCES "sources"("id") ON DELETE CASCADE,
     "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP

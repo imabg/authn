@@ -3,13 +3,12 @@ package store
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"github.com/imabg/authn/types"
 	"github.com/imabg/authn/utils"
 	"github.com/jmoiron/sqlx"
 )
 
-type SourceStoreInterface interface {
+type ISourceStore interface {
 	Create(*types.Source) (string, error)
 	GetByID(id string) (*types.Source, error)
 	GetConfig(id string) (*types.Config, error)
@@ -41,7 +40,6 @@ func (s *SourceStore) Create(data *types.Source) (string, error) {
 func (s *SourceStore) GetByID(id string) (*types.Source, error) {
 	var source types.Source
 	query := `SELECT * FROM sources WHERE id=$1 AND is_active=true`
-	fmt.Print(id)
 	err := s.db.Get(&source, query, id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, errors.New("source not found")

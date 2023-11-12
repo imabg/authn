@@ -47,6 +47,16 @@ func Send400Response(ctx *gin.Context, message string, err string) {
 	ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
 }
 
+func Send401Response(ctx *gin.Context, message string, err string) {
+	res := Response{
+		Message: message,
+		Status:  "Error",
+		Error:   err,
+		Data:    nil,
+	}
+	ctx.AbortWithStatusJSON(http.StatusUnauthorized, res)
+}
+
 func Send500Response(ctx *gin.Context, message string, err string) {
 	res := Response{
 		Message: message,
