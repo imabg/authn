@@ -14,14 +14,17 @@ type User struct {
 	CreatedAt       string         `db:"created_at" json:"created_at"`
 }
 
+const (
+	TENANT_USER string = "TENANT_USER"
+	USER        string = "USER"
+)
+
 type UserEmailDTO struct {
 	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
-	SourceID string `json:"source_id" binding:"required"`
 }
 
 type UserPhoneDTO struct {
 	Phone       string `json:"phone" binding:"required"`
 	CountryCode string `json:"country_code" binding:"required"`
-	SourceID    string `json:"source_id" binding:"required"`
 }

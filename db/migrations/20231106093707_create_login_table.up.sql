@@ -5,7 +5,6 @@ CREATE TABLE "logins" (
     "user_agent" varchar(255) NOT NULL,
     "access_token" varchar(1000) NOT NULL,
     "is_active" boolean NOT NULL,
-    "is_blacklisted" boolean,
     "logout_at" timestamp,
     "user_id" varchar(50) NOT NULL,
     CONSTRAINT fk_user FOREIGN KEY ("user_id") REFERENCES "users"("id"),
